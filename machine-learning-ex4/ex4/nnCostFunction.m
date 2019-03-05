@@ -79,24 +79,24 @@ J = J + (reg_theta1 + reg_theta2) * lambda / (2 * m);
 %         Hint: We recommend implementing backpropagation using a for-loop
 %               over the training examples if you are implementing it for the 
 %               first time.
-BD_1 = zeros(num_labels, hidden_layer_size + 1); % First back prop
-BD_2 = zeros(hidden_layer_size, input_layer_size + 1); % Second back prop
 for i = 1:m
     % Feed forward
     input = [1, X(i, :)]; % 1 x 401
-    a2 = [1, sigmoid(input * Theta1')]; % 1 x 26
-    a3 = sigmoid(a2 * Theta2'); % 1 x k
+    z2 = input * Theta1';
+    a2 = [1, sigmoid(z2)]; % 1 x 26
+    z3 = a2 * Theta2';
+    a3 = sigmoid(z3); % 1 x k
     
     delta_3 = a3 - vectorized_y(i, :); % 1 x k. Error for each hypothesis
-    delta_2 = delta_3 * Theta2 .* sigmoidGradient(a2); % 1x26. Error for each hidden node
-    delta_2 = delta_2(2:end);
-
-    BD_1 = BD_1 + (delta_3' * a2); % k x 26
-    BD_2 = BD_2 + (delta_2' * input); % 25 x 401
+    delta_2 = (delta_3 * Theta2) .* sigmoidGradient([1, z2]); % 1x26. Error for each hidden node
+    delta_2 = delta_2(2:end); % Drop 0th value representing bias node
+    
+    Theta2_grad = Theta2_grad + (delta_3' * a2); % k x 26
+    Theta1_grad = Theta1_grad + (delta_2' * input); % 25 x 401
 end
 
-Theta1_grad = BD_2 ./ m;
-Theta2_grad = BD_1 ./ m;
+Theta1_grad = Theta1_grad ./ m;
+Theta2_grad = Theta2_grad ./ m;
 
 
 
@@ -109,22 +109,17 @@ Theta2_grad = BD_1 ./ m;
 %               and Theta2_grad from Part 2.
 %
 
+% Calculate regularization grad for j >= 1
+Theta1_grad_reg = Theta1(:, 2:end) * lambda / m;
+Theta2_grad_reg = Theta2(:, 2:end) * lambda / m;
 
+% Resize to account for bias unit
+Theta1_grad_reg = [zeros(hidden_layer_size, 1), Theta1_grad_reg];
+Theta2_grad_reg = [zeros(num_labels, 1), Theta2_grad_reg];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+% Add to Theta Gradients
+Theta1_grad = Theta1_grad + Theta1_grad_reg;
+Theta2_grad = Theta2_grad + Theta2_grad_reg;
 
 % -------------------------------------------------------------
 
