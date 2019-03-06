@@ -19,15 +19,20 @@ grad = zeros(size(theta));
 %               You should set J to the cost and grad to the gradient.
 %
 
+% Cost
+hypo = X * theta; % 12x2
 
+J = sum((hypo - y).^2) / (2 * m);
+reg_weight = sum(theta(2:end).^2) * lambda / (2 * m);
+J = J + reg_weight;
 
+% Gradient
+err = hypo - y; % Error for each sample
+err_x = err .* X; % Multiply by each row of x
 
-
-
-
-
-
-
+grad = sum(err_x) / m;
+grad_reg = [0; (lambda / m) .* theta(2:end)]';
+grad = grad + grad_reg;
 
 
 % =========================================================================
